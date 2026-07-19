@@ -1,0 +1,73 @@
+return function(Window)
+	local LatestChangelog = {
+		"11/7/2026",
+		"<font color='rgb(0, 255, 0)'>+ Added Entity ESP Selection</font>",
+		"<font color='rgb(0, 255, 0)'>+ Added Item Notifier</font>",
+		"<font color='rgb(0, 255, 0)'>+ Added Remove Surge</font>",
+		"<font color='rgb(0, 255, 0)'>+ Added Death Farm</font>",
+		"<font color='rgb(0, 255, 0)'>+ Fixed Some Broken Features (Bypass Eyes, etc)</font>",
+	}
+
+	local function CloneReference(Object)
+		if MSstore and MSstore.Environment.cloneref then
+			return MSstore.Environment.cloneref(Object)
+		else
+			return Object
+		end
+	end
+
+	local Services = setmetatable({}, {
+		__index = function(self, Name)
+			return CloneReference(game:GetService(Name))
+		end
+	})
+
+	local Library = MSstore.Interface.Library
+	local SaveManager = MSstore.Interface.SaveManager
+	local ThemeManager = MSstore.Interface.ThemeManager
+
+	local Toggles = Library.Toggles
+	local Options = Library.Options
+
+	local LocalPlayer = Services.Players.LocalPlayer
+	local InfoTab = Window:AddTab("Info", "user")
+
+	local User = InfoTab:AddLeftGroupbox("User Info")
+
+	local ImageSize = Enum.ThumbnailSize.Size420x420
+	local ImageType = Enum.ThumbnailType.HeadShot
+
+	local Content = Services.Players:GetUserThumbnailAsync(LocalPlayer.UserId, ImageType, ImageSize)
+
+	User:AddImage("UserIcon", {
+		Image = Content
+	})
+
+	User:AddLabel("ID: " .. LocalPlayer.Name, true)
+	User:AddLabel("Total Executions: " .. (MSstore.TotalExecutions and MSstore.TotalExecutions or "N/A"), true)
+
+	local Changelog = InfoTab:AddRightGroupbox("Changelog")
+	for Index, Change in pairs(LatestChangelog) do
+		Changelog:AddLabel(Change, true)
+	end
+
+	local Name, Version = MSstore.Environment.identifyexecutor()
+	local Executor = InfoTab:AddRightGroupbox("Executor Info")
+	Executor:AddLabel("Name: " .. Name, true)
+	Executor:AddLabel("Version: " .. (Version and Version or "N/A"), true)
+	Executor:AddDivider()
+	Executor:AddLabel("Test Result: ", true)
+
+	for Index, Result in pairs(MSstore.Environment.Results) do
+		Result = Result:gsub("<", "(")
+		Result = Result:gsub(">", ")")
+
+		Executor:AddLabel(Result, true)
+	end
+
+	local Community = InfoTab:AddLeftGroupbox("Community")
+	Community:AddButton("Copy Discord Invite", function()
+		toclipboard("https://dsc.gg/MSstore")
+		Library:Notify("Discord invite copied.")
+	end)
+end
